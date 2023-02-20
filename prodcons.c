@@ -20,20 +20,28 @@
 
 
 // Define Locks, Condition variables, and so on here
+Matrix ** bigmatrix = (Matrix **) malloc(sizeof(Matrix *) * BOUNDED_BUFFER_SIZE);
+int fill = 0;
+int use = 0;
 pthread_mutex_t putMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t putCond = PTHREAD_COND_INITIALIZER;
-int produce = 0;
+int count = 0;
 
 
 // Bounded buffer put() get()
-int put(Matrix * value)
+void put(Matrix * value)
 {
-
+  bigmatrix + fill = value;
+  fill = (fill + 1) % BOUNDED_BUFFER_SIZE;
+  count++;
 }
 
 Matrix * get()
 {
-  return NULL;
+  Matrix * tmp = &(bigmatrix+use);
+  use = (use + 1) % BOUNDED_BUFFER_SIZE;
+  count--;
+  return tmp;
 }
 
 // Matrix PRODUCER worker thread
@@ -46,7 +54,7 @@ void *prod_worker(void *arg)
   {
     Matrix * matrix = GenMatrixRandom();
     pthread_mutex_lock(&putMutex);
-    while(produce == 0) // buffer size
+    while(count == 0) // buffer size
     {
         pthread_cond_wait(&putCond, &putMutex);
     }
