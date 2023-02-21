@@ -57,18 +57,14 @@ void *prod_worker(void *arg)
   {
     Matrix * matrix = GenMatrixRandom();
     pthread_mutex_lock(&putMutex);
-<<<<<<< HEAD
-    while(count == 0) // buffer size
-=======
-    while(produce == BOUNDED_BUFFER_SIZE) // buffer size
->>>>>>> 9e8ffe6 (Fixed while loop.)
+    while(fill == BOUNDED_BUFFER_SIZE)
     {
         pthread_cond_wait(&putCond, &putMutex);
     }
     put(matrix);
-
     pthread_mutex_unlock(&putMutex);
-
+    FreeMatrix(matrix);
+    stats.matrixtotal++;
   }
   
   return NULL;
