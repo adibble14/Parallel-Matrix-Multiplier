@@ -33,25 +33,19 @@ int count = 0;
 // Bounded buffer put() get()
 int put(Matrix * value)
 {
-  pthread_mutex_lock(&putMutex);
   bigmatrix = bigmatrix + fill;
   bigmatrix = value;
   fill = (fill + 1) % BOUNDED_BUFFER_SIZE;
   count++;
-  pthread_cond_signal(getCond)
-  pthread_mutex_unlock(&putMutex);
   return count;
 }
 
 Matrix * get()
 {
-  pthread_mutex_lock(&getMutex);
   bigmatrix = bigmatrix + use;
   Matrix * tmp = &bigmatrix;
   use = (use + 1) % BOUNDED_BUFFER_SIZE;
   count--;
-  pthread_cond_signal(putCond)
-  pthread_mutex_unlock(&getMutex);
   return tmp;
 }
 
@@ -82,7 +76,7 @@ void *prod_worker(void *arg)
 void *cons_worker(void *arg)
 {
   ProdConsStats stats = {0, 0, 0};
-  while (i = 0; i < NUMBER_OF_MATRICES; i++) {
+  for (int i = 0; i < NUMBER_OF_MATRICES; i++) {
     pthread_mutex_lock(&getMutex);
     while(use == 0) {
         pthread_cond_wait(&getCond, &getMutex);
@@ -95,7 +89,7 @@ void *cons_worker(void *arg)
       Matrix* m2 = get();
       m3 = MatrixMultiply(m1, m2);
 
-      if (res == NULL) {
+      if (m3 == NULL) {
         FreeMatrix(m2);
       }
       
