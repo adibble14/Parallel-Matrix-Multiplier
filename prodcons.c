@@ -20,7 +20,7 @@
 
 
 // Define Locks, Condition variables, and so on here
-Matrix ** bigmatrix = (Matrix **) malloc(sizeof(Matrix *) * BOUNDED_BUFFER_SIZE);
+//Matrix ** bigmatrix = (Matrix **) malloc(sizeof(Matrix *) * BOUNDED_BUFFER_SIZE);
 int fill = 0;
 int use = 0;
 pthread_mutex_t putMutex = PTHREAD_MUTEX_INITIALIZER;
@@ -29,16 +29,19 @@ int count = 0;
 
 
 // Bounded buffer put() get()
-void put(Matrix * value)
+int put(Matrix * value)
 {
-  bigmatrix + fill = value;
+  bigmatrix = bigmatrix + fill;
+  bigmatrix = value;
   fill = (fill + 1) % BOUNDED_BUFFER_SIZE;
   count++;
+  return count;
 }
 
 Matrix * get()
 {
-  Matrix * tmp = &(bigmatrix+use);
+  bigmatrix = bigmatrix + use;
+  Matrix * tmp = &bigmatrix;
   use = (use + 1) % BOUNDED_BUFFER_SIZE;
   count--;
   return tmp;
