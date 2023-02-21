@@ -87,12 +87,13 @@ int main (int argc, char * argv[])
   // Seed the random number generator with the system time
   srand((unsigned) time(&t));
 
+  
+  bigmatrix = (Matrix **) malloc(sizeof(Matrix *) * BOUNDED_BUFFER_SIZE);
   //
   // Demonstration code to show the use of matrix routines
   //
   // DELETE THIS CODE FOR YOUR SUBMISSION
   // ----------------------------------------------------------
-  bigmatrix = (Matrix **) malloc(sizeof(Matrix *) * BOUNDED_BUFFER_SIZE);
   printf("MATRIX MULTIPLICATION DEMO:\n\n");
   Matrix *m1, *m2, *m3;
   for (int i=0;i<NUMBER_OF_MATRICES;i++)
