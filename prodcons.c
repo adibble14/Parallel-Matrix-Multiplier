@@ -102,6 +102,7 @@ void *cons_worker(void *arg)
     FreeMatrix(m1);
     DisplayMatrix(m3, stdout);
     pthread_mutex_unlock(&getMutex);
+    stats.matrixtotal++;
 
   }
 
