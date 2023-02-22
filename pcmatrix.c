@@ -87,14 +87,13 @@ int main (int argc, char * argv[])
   // Seed the random number generator with the system time
   srand((unsigned) time(&t));
 
-  
   bigmatrix = (Matrix **) malloc(sizeof(Matrix *) * BOUNDED_BUFFER_SIZE);
   //
   // Demonstration code to show the use of matrix routines
   //
   // DELETE THIS CODE FOR YOUR SUBMISSION
   // ----------------------------------------------------------
-  printf("MATRIX MULTIPLICATION DEMO:\n\n");
+  /*printf("MATRIX MULTIPLICATION DEMO:\n\n");
   Matrix *m1, *m2, *m3;
   for (int i=0;i<NUMBER_OF_MATRICES;i++)
   {
@@ -117,7 +116,7 @@ int main (int argc, char * argv[])
       m3=NULL;
     }
   }
-  return 0;
+  return 0;*/
   // ----------------------------------------------------------
 
 
@@ -132,7 +131,8 @@ int main (int argc, char * argv[])
   pthread_t co;
 
   // Add your code here to create threads and so on
-
+  pthread_create(&pr, NULL, prod_worker, NULL);
+  pthread_create(&co, NULL, cons_worker, NULL);
 
   // These are used to aggregate total numbers for main thread output
   int prs = 0; // total #matrices produced
@@ -142,7 +142,10 @@ int main (int argc, char * argv[])
   int consmul = 0; // total # multiplications
 
   // consume ProdConsStats from producer and consumer threads [HINT: return from join]
+  pthread_join(pr, NULL);
+  pthread_join(co, NULL);
   // add up total matrix stats in prs, cos, prodtot, constot, consmul
+  
 
   printf("Sum of Matrix elements --> Produced=%d = Consumed=%d\n",prs,cos);
   printf("Matrices produced=%d consumed=%d multiplied=%d\n",prodtot,constot,consmul);
