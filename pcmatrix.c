@@ -143,6 +143,7 @@ int main (int argc, char * argv[])
 
   // consume ProdConsStats from producer and consumer threads [HINT: return from join]
   pthread_join(pr, NULL);
+  printf("Producer Finished>>>>\n");
   pthread_join(co, NULL);
   // add up total matrix stats in prs, cos, prodtot, constot, consmul
   
