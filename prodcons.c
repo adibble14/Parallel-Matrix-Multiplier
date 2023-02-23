@@ -23,9 +23,8 @@
 //Matrix ** bigmatrix = (Matrix **) malloc(sizeof(Matrix *) * BOUNDED_BUFFER_SIZE);
 int fill = 0;
 int use = 0;
-pthread_mutex_t putMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t putCond = PTHREAD_COND_INITIALIZER;
-pthread_mutex_t getMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t getCond = PTHREAD_COND_INITIALIZER;
 int count = 0;
 
@@ -33,8 +32,7 @@ int count = 0;
 // Bounded buffer put() get()
 int put(Matrix * value)
 {
-  bigmatrix = bigmatrix + fill;
-  bigmatrix =  &value;
+  bigmatrix[fill] = value;
   fill = (fill + 1) % BOUNDED_BUFFER_SIZE;
   count++;
   return count;
@@ -42,8 +40,7 @@ int put(Matrix * value)
 
 Matrix * get()
 {
-  bigmatrix = bigmatrix + use;
-  Matrix * tmp = &bigmatrix;
+  Matrix * tmp = bigmatrix[use];
   use = (use + 1) % BOUNDED_BUFFER_SIZE;
   count--;
   return tmp;
@@ -58,15 +55,14 @@ void *prod_worker(void *arg)
   for(i = 0; i < NUMBER_OF_MATRICES; i++)
   {
     Matrix * matrix = GenMatrixRandom();
-    pthread_mutex_lock(&putMutex);
-    while(fill == BOUNDED_BUFFER_SIZE)
+    pthread_mutex_lock(&mutex);
+    while(count == BOUNDED_BUFFER_SIZE)
     {
-        pthread_cond_wait(&putCond, &putMutex);
+        pthread_cond_wait(&putCond, &mutex);
     }
     put(matrix);
-    use++;
     pthread_cond_signal(&getCond);
-    pthread_mutex_unlock(&putMutex);
+    pthread_mutex_unlock(&mutex);
     FreeMatrix(matrix);
     stats.matrixtotal++;
   }
@@ -80,36 +76,34 @@ void *cons_worker(void *arg)
   printf("Starting Consumption>>>>\n");
   ProdConsStats stats = {0, 0, 0};
   for (int i = 0; i < NUMBER_OF_MATRICES; i++) {
-    pthread_mutex_lock(&getMutex);
-    while(use == 0) {
-        pthread_cond_wait(&getCond, &getMutex);
+    pthread_mutex_lock(&mutex);
+    while(count == 0) {
+        pthread_cond_wait(&getCond, &mutex);
     }
-    
     Matrix* m1 = get();
-    fill--;
+    printf("m1\n");
+    DisplayMatrix(m1, stdout);
     pthread_cond_signal(&putCond);
-    pthread_mutex_unlock(&getMutex);
+    pthread_mutex_unlock(&mutex);
 
     Matrix * m2 = NULL;
     Matrix* m3 = NULL;
     while (m3 == NULL) {
-      while(use == 0) {
-        pthread_cond_wait(&getCond, &getMutex);
+      pthread_mutex_lock(&mutex);
+      while(count == 0) {
+        pthread_cond_wait(&getCond, &mutex);
       }
-      pthread_mutex_lock(&getMutex);
       m2 = get();
-      fill--;
       pthread_cond_signal(&putCond);
-      pthread_mutex_unlock(&getMutex);
+      pthread_mutex_unlock(&mutex);
       m3 = MatrixMultiply(m1, m2);
-
       if (m3 == NULL) {
         FreeMatrix(m2);
       }
     }
     FreeMatrix(m2);
     FreeMatrix(m1);
-    pthread_mutex_unlock(&getMutex);
+    //pthread_mutex_unlock(&getMutex);
     stats.matrixtotal++;
   }
   printf("Consumer total matrix: %d\n", stats.matrixtotal);
