@@ -47,7 +47,7 @@ Matrix * get()
 }
 
 // Matrix PRODUCER worker thread
-ProdConsStats *prod_worker(void *arg)
+void *prod_worker(void *arg)
 {
   printf("Staring production>>>\n");
   ProdConsStats * stats = malloc(sizeof(ProdConsStats));
@@ -70,14 +70,18 @@ ProdConsStats *prod_worker(void *arg)
     stats->matrixtotal++;
   }
   printf(" Producer total matrix: %d\n", stats->matrixtotal);
-  return stats;
+  return (void *) stats;
 }
 
 // Matrix CONSUMER worker thread
 void *cons_worker(void *arg)
 {
   printf("Starting Consumption>>>>\n");
-  ProdConsStats stats = {0, 0, 0};
+  //ProdConsStats stats = {0, 0, 0};
+  ProdConsStats * stats = malloc(sizeof(ProdConsStats));
+  stats->matrixtotal = 0;
+  stats->multtotal = 0;
+  stats->sumtotal = 0;
   for (int i = 0; i < NUMBER_OF_MATRICES; i++) {
     pthread_mutex_lock(&mutex);
     while(count == 0) {
@@ -106,9 +110,8 @@ void *cons_worker(void *arg)
     }
     FreeMatrix(m2);
     FreeMatrix(m1);
-    //pthread_mutex_unlock(&getMutex);
-    stats.matrixtotal++;
+    stats->matrixtotal++;
   }
-  printf("Consumer total matrix: %d\n", stats.matrixtotal);
-  return NULL;
+  printf("Consumer total matrix: %d\n", stats->matrixtotal);
+  return (void *) stats;
 }
