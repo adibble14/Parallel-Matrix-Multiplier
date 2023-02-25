@@ -156,7 +156,6 @@ int main (int argc, char * argv[])
   prodtot = prStats->sumtotal;
   constot = coStats->sumtotal;
   consmul = coStats->multtotal;
-  
 
   printf("Sum of Matrix elements --> Produced=%d = Consumed=%d\n",prs,cos);
   printf("Matrices produced=%d consumed=%d multiplied=%d\n",prodtot,constot,consmul);
