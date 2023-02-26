@@ -28,6 +28,7 @@ pthread_mutex_t getMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t putCond = PTHREAD_COND_INITIALIZER;
 pthread_cond_t getCond = PTHREAD_COND_INITIALIZER;
 int count = 0;
+int test = 0;
 
 
 // Bounded buffer put() get()
@@ -45,7 +46,12 @@ Matrix * get()
 {
   Matrix * tmp = bigmatrix[use];
   use = (use + 1) % BOUNDED_BUFFER_SIZE;
-  count--;
+  if(count <= 0){
+	return tmp;
+  }else{
+    count--;
+  }
+  test++;
   printf("getting>>>> Count %d\n", count);
   pthread_cond_signal(&putCond);
   return tmp;
@@ -71,6 +77,7 @@ void *prod_worker(void *arg)
     }
     put(matrix);
     pthread_mutex_unlock(&putMutex);
+    stats->sumtotal += SumMatrix(matrix);
     stats->matrixtotal++;
   }
   printf(" Producer total matrix: %d\n", stats->matrixtotal);
@@ -86,28 +93,46 @@ void *cons_worker(void *arg)
   stats->matrixtotal = 0;
   stats->multtotal = 0;
   stats->sumtotal = 0;
-  for (int i = 0; i < NUMBER_OF_MATRICES; i++) {
+  while(test < NUMBER_OF_MATRICES){
     pthread_mutex_lock(&getMutex);
-    while(count == 0) {
+    while(count == 0 && test < NUMBER_OF_MATRICES) {
         pthread_cond_wait(&getCond, &getMutex);
     }
+
+    //checking to see if all matrixes have been consumed
+    if(count == 0 && test >= NUMBER_OF_MATRICES-1){
+      	return (void *) stats;
+      }
     Matrix* m1 = get();
+    stats->sumtotal += SumMatrix(m1);
     printf("m1 %p\n", &m1);
     DisplayMatrix(m1, stdout);
     pthread_mutex_unlock(&getMutex);
+    
+    //checking to see if all matrixes have been consumed
+    if(count == 0 && test >= NUMBER_OF_MATRICES-1){
+      	return (void *) stats;
+      }
 
     Matrix * m2 = NULL;
     Matrix* m3 = NULL;
     while (m3 == NULL) {
       pthread_mutex_lock(&getMutex);
-      while(count == 0) {
+      while(count == 0 && test < NUMBER_OF_MATRICES) {
         pthread_cond_wait(&getCond, &getMutex);
       }
+      
+      //checking to see if all matrixes have been consumed
+      if(count == 0 && test >= NUMBER_OF_MATRICES-1){
+      	return (void *) stats;
+      }
       m2 = get();
+      stats->sumtotal += SumMatrix(m2);
       printf("m2 %p\n", &m2);
     DisplayMatrix(m2, stdout);
       pthread_mutex_unlock(&getMutex);
       m3 = MatrixMultiply(m1, m2);
+      stats->multtotal += 2;
       printf("m3 %p\n", &m3);
        DisplayMatrix(m3, stdout);
       if (m3 == NULL) {
