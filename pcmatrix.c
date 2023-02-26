@@ -150,6 +150,7 @@ int main (int argc, char * argv[])
   //printf("%d", stats->matrixtotal);
   printf("Producer Finished>>>>\n");
   pthread_join(co, &coStats);
+  printf("Consumer Finished>>>>\n");
   // add up total matrix stats in prs, cos, prodtot, constot, consmul
   prs = prStats->matrixtotal;
   cos = coStats->matrixtotal;
@@ -157,8 +158,8 @@ int main (int argc, char * argv[])
   constot = coStats->sumtotal;
   consmul = coStats->multtotal;
 
-  printf("Sum of Matrix elements --> Produced=%d = Consumed=%d\n",prs,cos);
-  printf("Matrices produced=%d consumed=%d multiplied=%d\n",prodtot,constot,consmul);
+  printf("Sum of Matrix elements --> Produced=%d = Consumed=%d\n",prodtot,constot);
+  printf("Matrices produced=%d consumed=%d multiplied=%d\n",prs,cos,consmul);
 
   return 0;
 }
