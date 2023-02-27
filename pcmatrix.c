@@ -88,62 +88,32 @@ int main (int argc, char * argv[])
   srand((unsigned) time(&t));
 
   bigmatrix = (Matrix **) malloc(sizeof(Matrix *) * BOUNDED_BUFFER_SIZE);
-  //
-  // Demonstration code to show the use of matrix routines
-  //
-  // DELETE THIS CODE FOR YOUR SUBMISSION
-  // ----------------------------------------------------------
-  /*printf("MATRIX MULTIPLICATION DEMO:\n\n");
-  Matrix *m1, *m2, *m3;
-  for (int i=0;i<NUMBER_OF_MATRICES;i++)
-  {
-    m1 = GenMatrixRandom();
-    m2 = GenMatrixRandom();
-    m3 = MatrixMultiply(m1, m2);
-    if (m3 != NULL)
-    {
-      DisplayMatrix(m1,stdout);
-      printf("    X\n");
-      DisplayMatrix(m2,stdout);
-      printf("    =\n");
-      DisplayMatrix(m3,stdout);
-      printf("\n");
-      FreeMatrix(m3);
-      FreeMatrix(m2);
-      FreeMatrix(m1);
-      m1=NULL;
-      m2=NULL;
-      m3=NULL;
-    }
-  }
-  return 0;*/
-  // ----------------------------------------------------------
-
-
-
+  
   printf("Producing %d matrices in mode %d.\n",NUMBER_OF_MATRICES,MATRIX_MODE);
   printf("Using a shared buffer of size=%d\n", BOUNDED_BUFFER_SIZE);
   printf("With %d producer and consumer thread(s).\n",numw);
   printf("\n");
 
   // Here is an example to define one producer and one consumer
-  pthread_t pr;
-  pthread_t co;
+  pthread_t pr[numw];
+  pthread_t co[numw];
+
 
   //counter struct
   counter_t * produced = malloc(sizeof(counter_t));
   counter_t * consumed = malloc(sizeof(counter_t));
   init_cnt(produced);
   init_cnt(consumed);
-  //assert(counter); want to check if counter is not null
 
   //stats
-  ProdConsStats * prStats;
-  ProdConsStats * coStats;
+  ProdConsStats * prStats[numw];
+  ProdConsStats * coStats[numw];
 
   // Add your code here to create threads and so on
-  pthread_create(&pr, NULL, prod_worker, produced);
-  pthread_create(&co, NULL, cons_worker, consumed);
+  for(int i = 0;i<numw;i++){
+	pthread_create(&pr[i], NULL, prod_worker, produced);
+	pthread_create(&co[i], NULL, cons_worker, consumed);
+  }
 
   // These are used to aggregate total numbers for main thread output
   int prs = 0; // total #matrices produced
@@ -153,17 +123,20 @@ int main (int argc, char * argv[])
   int consmul = 0; // total # multiplications
 
   // consume ProdConsStats from producer and consumer threads [HINT: return from join]
-  pthread_join(pr, &prStats);
-  //printf("%d", stats->matrixtotal);
-  printf("Producer Finished>>>>\n");
-  pthread_join(co, &coStats);
-  printf("Consumer Finished>>>>\n");
+  for(int i = 0;i<numw;i++){
+	pthread_join(pr[i], &prStats[i]);
+	pthread_join(co[i], &coStats[i]);
+  }
+  
   // add up total matrix stats in prs, cos, prodtot, constot, consmul
-  prs = prStats->matrixtotal;
-  cos = coStats->matrixtotal;
-  prodtot = prStats->sumtotal;
-  constot = coStats->sumtotal;
-  consmul = coStats->multtotal;
+  for(int i=0; i<numw;i++){
+  	prs += prStats[i]->matrixtotal;
+  	cos += coStats[i]->matrixtotal;
+  	prodtot += prStats[i]->sumtotal;
+  	constot += coStats[i]->sumtotal;
+  	consmul += coStats[i]->multtotal;
+  }
+
 
   printf("Sum of Matrix elements --> Produced=%d = Consumed=%d\n",prodtot,constot);
   printf("Matrices produced=%d consumed=%d multiplied=%d\n",prs,cos,consmul);
