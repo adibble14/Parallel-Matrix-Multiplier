@@ -130,13 +130,20 @@ int main (int argc, char * argv[])
   pthread_t pr;
   pthread_t co;
 
+  //counter struct
+  counter_t * produced = malloc(sizeof(counter_t));
+  counter_t * consumed = malloc(sizeof(counter_t));
+  init_cnt(produced);
+  init_cnt(consumed);
+  //assert(counter); want to check if counter is not null
+
   //stats
   ProdConsStats * prStats;
   ProdConsStats * coStats;
 
   // Add your code here to create threads and so on
-  pthread_create(&pr, NULL, prod_worker, NULL);
-  pthread_create(&co, NULL, cons_worker, NULL);
+  pthread_create(&pr, NULL, prod_worker, produced);
+  pthread_create(&co, NULL, cons_worker, consumed);
 
   // These are used to aggregate total numbers for main thread output
   int prs = 0; // total #matrices produced
