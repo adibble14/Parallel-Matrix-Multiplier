@@ -20,13 +20,11 @@
 
 
 // Define Locks, Condition variables, and so on here
-//Matrix ** bigmatrix = (Matrix **) malloc(sizeof(Matrix *) * BOUNDED_BUFFER_SIZE);
 int fill = 0;
 int use = 0;
 int count = 0;
 
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-//pthread_mutex_t getMutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t putCond = PTHREAD_COND_INITIALIZER;
 pthread_cond_t getCond = PTHREAD_COND_INITIALIZER;
 
@@ -63,6 +61,7 @@ void *prod_worker(void *arg)
   stats->multtotal = 0;
   stats->sumtotal = 0;
 
+  //get_set increments the counter by 1 and returns the value
   while(get_set(counter) < NUMBER_OF_MATRICES )
   {
     Matrix * matrix = GenMatrixRandom();
@@ -74,7 +73,6 @@ void *prod_worker(void *arg)
     }
     put(matrix);
     pthread_mutex_unlock(&mutex);
-    //increment_cnt(counter);
     stats->sumtotal += SumMatrix(matrix);
     stats->matrixtotal++;
   }
@@ -99,8 +97,7 @@ void *cons_worker(void *arg)
 
     Matrix* m1 = get();
     pthread_mutex_unlock(&mutex);
-    stats->sumtotal += SumMatrix(m1);
-    //increment_cnt(counter);
+    
     
     Matrix * m2 = NULL;
     Matrix* m3 = NULL;
@@ -112,28 +109,27 @@ void *cons_worker(void *arg)
       }
       m2 = get();
       pthread_mutex_unlock(&mutex);
-      stats->sumtotal += SumMatrix(m2);
-      //increment_cnt(counter);
 
       m3 = MatrixMultiply(m1, m2);
       stats->multtotal += 2;
-      //printf("m3 %p\n", &m3);
-       //DisplayMatrix(m3, stdout);
       if (m3 == NULL) {
         FreeMatrix(m2);
         m2 = NULL;
       }
     }
+    
     if(m3 != NULL)
     {
       FreeMatrix(m3);
     }
     if(m2 != NULL)
     {
+      stats->sumtotal += SumMatrix(m2);
       FreeMatrix(m2);
     }
     if(m1 != NULL)
     {
+      stats->sumtotal += SumMatrix(m1);
       FreeMatrix(m1);
     }
     stats->matrixtotal++;
