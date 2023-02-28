@@ -30,3 +30,11 @@ int get_cnt(counter_t *c)  {
   pthread_mutex_unlock(&c->lock);
   return rc;
 }
+int get_set(counter_t *c)
+{
+  pthread_mutex_lock(&c->lock);
+  int rc = c->value;
+  c->value++;
+  pthread_mutex_unlock(&c->lock);
+  return rc;
+}

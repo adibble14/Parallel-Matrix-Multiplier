@@ -59,23 +59,22 @@ void *prod_worker(void *arg)
   counter_t * counter =   (counter_t *) arg;
 
   ProdConsStats * stats = malloc(sizeof(ProdConsStats));
-  //assert(stats != NULL);
   stats->matrixtotal = 0;
   stats->multtotal = 0;
   stats->sumtotal = 0;
-  int i;
 
-  while(get_cnt(counter) < NUMBER_OF_MATRICES )
+  while(get_set(counter) < NUMBER_OF_MATRICES )
   {
     Matrix * matrix = GenMatrixRandom();
     pthread_mutex_lock(&mutex);
     while(count == BOUNDED_BUFFER_SIZE)
     {
+      printf("waiting\n");
         pthread_cond_wait(&putCond, &mutex);
     }
     put(matrix);
     pthread_mutex_unlock(&mutex);
-    increment_cnt(counter);
+    //increment_cnt(counter);
     stats->sumtotal += SumMatrix(matrix);
     stats->matrixtotal++;
   }
@@ -87,14 +86,12 @@ void *prod_worker(void *arg)
 void *cons_worker(void *arg)
 {
   counter_t * counter =   (counter_t *) arg;
-  printf("Starting Consumption>>>>\n");
   ProdConsStats * stats = malloc(sizeof(ProdConsStats));
-  //assert(stats != NULL);
   stats->matrixtotal = 0;
   stats->multtotal = 0;
   stats->sumtotal = 0;
 
-  while(get_cnt(counter) < NUMBER_OF_MATRICES){
+  while(get_set(counter) < NUMBER_OF_MATRICES){
     pthread_mutex_lock(&mutex);
     while(count == 0) {
         pthread_cond_wait(&getCond, &mutex);
@@ -103,14 +100,12 @@ void *cons_worker(void *arg)
     Matrix* m1 = get();
     pthread_mutex_unlock(&mutex);
     stats->sumtotal += SumMatrix(m1);
-    printf("m1 %p\n", &m1);
-    DisplayMatrix(m1, stdout);
-    increment_cnt(counter);
+    //increment_cnt(counter);
     
     Matrix * m2 = NULL;
     Matrix* m3 = NULL;
 
-    while (m3 == NULL && get_cnt(counter) < NUMBER_OF_MATRICES) {
+    while (m3 == NULL && get_set(counter) < NUMBER_OF_MATRICES) {
       pthread_mutex_lock(&mutex);
       while(count == 0) {
         pthread_cond_wait(&getCond, &mutex);
@@ -118,14 +113,12 @@ void *cons_worker(void *arg)
       m2 = get();
       pthread_mutex_unlock(&mutex);
       stats->sumtotal += SumMatrix(m2);
-      printf("m2 %p\n", &m2);
-      DisplayMatrix(m2, stdout);
-      increment_cnt(counter);
+      //increment_cnt(counter);
 
       m3 = MatrixMultiply(m1, m2);
       stats->multtotal += 2;
-      printf("m3 %p\n", &m3);
-       DisplayMatrix(m3, stdout);
+      //printf("m3 %p\n", &m3);
+       //DisplayMatrix(m3, stdout);
       if (m3 == NULL) {
         FreeMatrix(m2);
         m2 = NULL;
