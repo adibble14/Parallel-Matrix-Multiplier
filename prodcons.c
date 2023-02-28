@@ -97,7 +97,8 @@ void *cons_worker(void *arg)
 
     Matrix* m1 = get();
     pthread_mutex_unlock(&mutex);
-    
+    stats->matrixtotal++;
+    stats->sumtotal += SumMatrix(m1);
     
     Matrix * m2 = NULL;
     Matrix* m3 = NULL;
@@ -109,6 +110,8 @@ void *cons_worker(void *arg)
       }
       m2 = get();
       pthread_mutex_unlock(&mutex);
+      stats->matrixtotal++;
+      stats->sumtotal += SumMatrix(m2);
 
       m3 = MatrixMultiply(m1, m2);
       stats->multtotal += 2;
@@ -117,22 +120,18 @@ void *cons_worker(void *arg)
         m2 = NULL;
       }
     }
-    
     if(m3 != NULL)
     {
       FreeMatrix(m3);
     }
     if(m2 != NULL)
     {
-      stats->sumtotal += SumMatrix(m2);
       FreeMatrix(m2);
     }
     if(m1 != NULL)
     {
-      stats->sumtotal += SumMatrix(m1);
       FreeMatrix(m1);
     }
-    stats->matrixtotal++;
   }
   printf("Consumer total matrix: %d\n", stats->matrixtotal);
   return (void *) stats;
